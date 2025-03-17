@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="p2p.Controls.SocketMessagesControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:p2p.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Name="SocketMessages"
+    >
+
+    <StackPanel>
+        <ScrollViewer x:Name="MessageScrollViewer" VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Auto" Height="200">
+            <ItemsControl x:Name="MessageListView">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" FontSize="16" Margin="0"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer >
+        <TextBox x:Name="MessageTextBox" Width="300" PlaceholderText="Escribe tu mensaje aqui..." KeyDown="MessageTextBox_KeyDown" Margin="10"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0">
+            <Button Content="Enviar al Servidor" Click="SendToServer_Click" Margin="5"/>
+            <Button Content="Enviar al Cliente" Click="SendToClient_Click" Margin="5"/>
+            <Button Content="Limpiar Mensajes" Click="ClearMessages_Click" Margin="5"/>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

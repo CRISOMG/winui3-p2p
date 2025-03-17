@@ -7,70 +7,125 @@ using Windows.Networking.Sockets;
 using Windows.Networking;
 using Windows.Storage.Streams;
 using System.Diagnostics;
-
-
+using Makaretu.Dns;
+using Windows.Networking.Connectivity;
+using System.Collections.ObjectModel;
+using Microsoft.UI.Dispatching;
+using System.Net;
 namespace p2p.Controllers
 {
-    class MdnsController
+    public class DiscoveredService : IEquatable<DiscoveredService>
     {
-        private DatagramSocket socket;
-        private const string MdnsAddress = "224.0.0.251";
-        private const string MdnsPort = "5353";
+        public string Name { get; set; } // Nombre del servicio
+        public string Address { get; set; } // Dirección IP
+        public int Port { get; set; } // Puerto
+        public string DeviceName { get; set; } // Nombre del dispositivo
+        public string MacAddress { get; set; } // Dirección MAC
+        public bool IsConnected { get; set; } // Estado de la conexión
 
-        public async void StartDiscovery()
+        public bool Equals(DiscoveredService other)
         {
-            try
-            {
-                socket = new DatagramSocket();
-                socket.MessageReceived += OnMessageReceived;
-
-                await socket.BindServiceNameAsync("8080");
-                socket.JoinMulticastGroup(new HostName(MdnsAddress));
-
-                    
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"❌ Error en descubrimiento mDNS: {ex.Message}");
-            }
+            if (other == null) return false;
+            return Name == other.Name;
         }
 
-        private async void OnMessageReceived(DatagramSocket sender, DatagramSocketMessageReceivedEventArgs args)
+        public override int GetHashCode()
         {
-            try
-            {
-                DataReader reader = args.GetDataReader();
-                byte[] buffer = new byte[reader.UnconsumedBufferLength];
-                reader.ReadBytes(buffer);
+            return HashCode.Combine(Name);
+        }
+    }
+    public class MdnsController
+    {
+        private MulticastService mdns;
+        private ServiceDiscovery discovery;
 
-                string message = Encoding.UTF8.GetString(buffer);
-                Debug.WriteLine($"📡 Mensaje mDNS recibido: {message}");
-            }
-            catch (Exception ex)
+        private HashSet<DiscoveredService> discoveredServicesHashSet = new HashSet<DiscoveredService>();
+
+        string serviceName = "MyOMGAppService-Windows";
+        string serviceType = "_myomgservice._tcp";
+        ushort port = 8888;
+        public event Action<DiscoveredService> ServiceResolved;
+        public void StartDiscovery()
+        {
+            mdns = new MulticastService();
+            mdns.Start();
+            mdns.AnswerReceived += (s, message) =>
             {
-                Debug.WriteLine($"❌ Error al recibir mensaje: {ex.Message}");
-            }
+                var aRecord = message.Message?.Answers.OfType<ARecord>().FirstOrDefault();
+                if (aRecord != null)
+                {
+                    Debug.WriteLine("[mdns.AnswerReceived]");
+                    // Obtiene el registro SRV que corresponde al mensaje actual
+                    var srvRecord = message.Message.Answers.OfType<SRVRecord>().FirstOrDefault();
+                    int port = (int)(srvRecord?.Port ?? 0);
+                    if (port <= 0)
+                    {
+                        Debug.WriteLine("Error: el puerto no es válido.");
+                        return; // Evita intentar conectarse si el puerto es inválido
+                    }
+
+                    var service = new DiscoveredService
+                    {
+                        Name = srvRecord.Target.ToString(),
+                        Address = aRecord.Address.ToString(),
+                        Port = port,
+                        // Aquí puedes añadir más información si está disponible
+                    };
+                    if (!discoveredServicesHashSet.Contains(service)) { 
+                        discoveredServicesHashSet.Add(service);
+                        Debug.WriteLine($"🌐 Service URI: {service.Address}:{service.Port}");
+                        ServiceResolved?.Invoke(service);
+                    }
+                }
+            };
+
+            discovery = new ServiceDiscovery(mdns);
+            discovery.ServiceInstanceDiscovered += (s, args) =>
+            {
+                 // Obtener el registro SRV (contiene el hostname del servicio)
+                var srvRecord = args.Message.Answers.OfType<SRVRecord>().FirstOrDefault();
+                if (srvRecord != null)
+                {
+                    // Enviar consulta manual para obtener la IP del hostname
+                    var newService = new DiscoveredService { Name = srvRecord.Target.ToString() };
+                    if (!discoveredServicesHashSet.Contains(newService))
+                    {
+                        Debug.WriteLine($"[ServiceInstanceDiscovered] \n 🔍 Servicio: {args.ServiceInstanceName} Hostname: {srvRecord.Target}, Puerto: {srvRecord.Port}");
+                        mdns.SendQuery(srvRecord.Target);
+                        Debug.WriteLine($" Enviando consulta para {srvRecord.Target}");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"[ServiceInstanceDiscovered] El servicio {srvRecord.Target} ya fue descubierto anteriormente.");
+                    }
+                }
+
+            };
+           
+            //discovery.QueryAllServices();
+            discovery.QueryServiceInstances(serviceType);
+            Debug.WriteLine("📡 Iniciando descubrimiento mDNS...");
         }
 
-        public async void AdvertiseService( string ipAddress, int port)
+        public List<DiscoveredService> GetDiscoveredServices()
         {
-            try
-            {
-                IOutputStream outputStream = await socket.GetOutputStreamAsync(new HostName(MdnsAddress), MdnsPort);
-                DataWriter writer = new DataWriter(outputStream);
+            return discoveredServicesHashSet.ToList(); // Retornar la lista de servicios descubiertos
+        }
 
-                string serviceMessage = $"_myomgapp._tcp";
-                byte[] data = Encoding.UTF8.GetBytes(serviceMessage);
+        public void AdvertiseService()
+        {
+            var service = new ServiceProfile(serviceName, serviceType, port);
+            //service.AddProperty("info", "Mi servicio en UWP");
 
-                writer.WriteBytes(data);
-                await writer.StoreAsync();
+            discovery.Advertise(service);
+            Debug.WriteLine("📢 Servicio anunciado con éxito.");
+        }
 
-                Debug.WriteLine($"📢 Servicio anunciado: {serviceMessage}");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"❌ Error al anunciar servicio: {ex.Message}");
-            }
+        public void StopDiscovery()
+        {
+            discovery?.Dispose();
+            mdns?.Stop();
+            Debug.WriteLine("🛑 Descubrimiento detenido.");
         }
     }
 }

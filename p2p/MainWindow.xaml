@@ -2,22 +2,20 @@
     x:Class="p2p.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Dispositivos Conectados">
+    Title="P2P Chat"
+    x:Name="mainWindow"
+    xmlns:local="using:p2p.Controls"
+    >
 
     <StackPanel>
         <Button x:Name="scanButton" Content="Buscar Dispositivos" Click="ScanDevices"/>
 
         <Button Content="Iniciar Descubrimiento" Click="StartDiscovery_Click"/>
         <Button Content="Anunciar Servicio" Click="AdvertiseService_Click"/>
-        <ListView x:Name="DeviceListView">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel>
-                        <TextBlock Text="{Binding Name}" FontSize="16"/>
-                        <TextBlock Text="{Binding ConnectionType}" FontSize="12" Foreground="Gray"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        
+        <local:ServiceListControl />
+
+        <local:SocketMessagesControl />
+
     </StackPanel>
 </Window>
