@@ -8,7 +8,6 @@
     >
 
     <StackPanel>
-        <Button x:Name="scanButton" Content="Buscar Dispositivos" Click="ScanDevices"/>
 
         <Button Content="Iniciar Descubrimiento" Click="StartDiscovery_Click"/>
         <Button Content="Anunciar Servicio" Click="AdvertiseService_Click"/>

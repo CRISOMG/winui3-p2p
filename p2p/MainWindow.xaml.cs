@@ -25,9 +25,8 @@ namespace p2p
     {
         private DeviceListModel deviceList = new DeviceListModel();
         private DeviceController deviceController;
+
         private readonly ApplicationContext context;
-        public ObservableCollection<string> ReceivedMessages { get; } = new ObservableCollection<string>();
-        public ObservableCollection<DiscoveredService> discoveredServicesList { get; } = new ObservableCollection<DiscoveredService>();
 
         public MainWindow()
         {
@@ -35,7 +34,6 @@ namespace p2p
             context = App.AppContext;
             deviceController = new DeviceController(deviceList);
         }
-
         private void StartDiscovery_Click(object sender, RoutedEventArgs e)
         {
             context.MdnsController.StartDiscovery();
