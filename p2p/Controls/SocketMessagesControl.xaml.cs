@@ -6,8 +6,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using p2p.Contexts;
-using p2p.Controllers;
-using p2p.Models;
 
 namespace p2p.Controls
 {
@@ -100,7 +98,7 @@ namespace p2p.Controls
     public partial class SocketMessagesViewModel : ObservableObject
     {
         private readonly ApplicationContext context;
-        public ObservableCollection<string> ReceivedMessages { get; } = new();
+        public ObservableCollection<string> ReceivedMessages { get; } = [];
 
 
         [ObservableProperty]

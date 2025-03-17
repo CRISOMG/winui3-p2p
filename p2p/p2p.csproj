@@ -46,9 +46,6 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250205002" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Views\" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Contexts\ApplicationContext.cs" />
   </ItemGroup>
   <ItemGroup>

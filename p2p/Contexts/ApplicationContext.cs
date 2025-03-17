@@ -17,23 +17,14 @@ namespace p2p.Contexts
         {
             MdnsController = new MdnsController();
             SocketManager = new SocketManager();
-         
-            MdnsController.ServiceResolved += async (DiscoveredService service) => {
-                Debug.WriteLine("[onServiceResolved]");
 
-                
-                //await SocketManager.ConnectAsync(service.Address, service.Port);
-                //if (SocketManager.socket.Connected) // Verifica si la conexión fue exitosa
-                //{
-                //    Debug.WriteLine("Intentando enviar un mensaje");
-                //    SocketManager.SendMessage("Hola desde Windows");
-                //}
-                //else
-                //{
-                //    Debug.WriteLine("No se pudo enviar el mensaje porque no hay conexión.");
-                //}
-
-            };
+            //MdnsController.ServiceDiscovered += (s, e) =>
+            // {
+            //     foreach (var address in e.Service.Addresses)
+            //     {
+            //         Debug.WriteLine($"IP descubierta por mDNS: {address}");
+            //     }
+            // };
         }
     }
 

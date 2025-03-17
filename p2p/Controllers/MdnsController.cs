@@ -14,7 +14,7 @@ using Microsoft.UI.Dispatching;
 using System.Net;
 namespace p2p.Controllers
 {
-    public class DiscoveredService : IEquatable<DiscoveredService>
+    public class DiscoveredServiceModel : IEquatable<DiscoveredServiceModel>
     {
         public string Name { get; set; } // Nombre del servicio
         public string Address { get; set; } // Dirección IP
@@ -23,7 +23,7 @@ namespace p2p.Controllers
         public string MacAddress { get; set; } // Dirección MAC
         public bool IsConnected { get; set; } // Estado de la conexión
 
-        public bool Equals(DiscoveredService other)
+        public bool Equals(DiscoveredServiceModel other)
         {
             if (other == null) return false;
             return Name == other.Name;
@@ -39,12 +39,14 @@ namespace p2p.Controllers
         private MulticastService mdns;
         private ServiceDiscovery discovery;
 
-        private HashSet<DiscoveredService> discoveredServicesHashSet = new HashSet<DiscoveredService>();
+        private HashSet<DiscoveredServiceModel> discoveredServicesHashSet = new HashSet<DiscoveredServiceModel>();
 
         string serviceName = "MyOMGAppService-Windows";
         string serviceType = "_myomgservice._tcp";
         ushort port = 8888;
-        public event Action<DiscoveredService> ServiceResolved;
+        public event Action<DiscoveredServiceModel> ServiceResolved;
+
+        //public event Action<ServiceInstanceDiscoveryEventArgs> _ServiceInstanceDiscovered;
         public void StartDiscovery()
         {
             mdns = new MulticastService();
@@ -54,17 +56,16 @@ namespace p2p.Controllers
                 var aRecord = message.Message?.Answers.OfType<ARecord>().FirstOrDefault();
                 if (aRecord != null)
                 {
-                    Debug.WriteLine("[mdns.AnswerReceived]");
                     // Obtiene el registro SRV que corresponde al mensaje actual
                     var srvRecord = message.Message.Answers.OfType<SRVRecord>().FirstOrDefault();
                     int port = (int)(srvRecord?.Port ?? 0);
                     if (port <= 0)
                     {
-                        Debug.WriteLine("Error: el puerto no es válido.");
+                        //Debug.WriteLine("Error: el puerto no es válido.");
                         return; // Evita intentar conectarse si el puerto es inválido
                     }
 
-                    var service = new DiscoveredService
+                    var service = new DiscoveredServiceModel
                     {
                         Name = srvRecord.Target.ToString(),
                         Address = aRecord.Address.ToString(),
@@ -82,12 +83,12 @@ namespace p2p.Controllers
             discovery = new ServiceDiscovery(mdns);
             discovery.ServiceInstanceDiscovered += (s, args) =>
             {
-                 // Obtener el registro SRV (contiene el hostname del servicio)
+                // Obtener el registro SRV (contiene el hostname del servicio)
                 var srvRecord = args.Message.Answers.OfType<SRVRecord>().FirstOrDefault();
                 if (srvRecord != null)
                 {
                     // Enviar consulta manual para obtener la IP del hostname
-                    var newService = new DiscoveredService { Name = srvRecord.Target.ToString() };
+                    var newService = new DiscoveredServiceModel { Name = srvRecord.Target.ToString() };
                     if (!discoveredServicesHashSet.Contains(newService))
                     {
                         Debug.WriteLine($"[ServiceInstanceDiscovered] \n 🔍 Servicio: {args.ServiceInstanceName} Hostname: {srvRecord.Target}, Puerto: {srvRecord.Port}");
@@ -107,7 +108,7 @@ namespace p2p.Controllers
             Debug.WriteLine("📡 Iniciando descubrimiento mDNS...");
         }
 
-        public List<DiscoveredService> GetDiscoveredServices()
+        public List<DiscoveredServiceModel> GetDiscoveredServices()
         {
             return discoveredServicesHashSet.ToList(); // Retornar la lista de servicios descubiertos
         }

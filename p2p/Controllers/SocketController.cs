@@ -1,39 +1,64 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 
-public class SocketManager
+public partial class SocketManager : ObservableObject
 {
     //private readonly ApplicationContext context;
     public Socket socket;
+    private Socket listenerSocket;
     public event Action<string> MessageReceived;
+    public event Action<Socket> OnNewConnection;
     public event Action OnDisconnected;
- 
-    public event PropertyChangedEventHandler PropertyChanged;
+
+    [ObservableProperty]
     private bool _isConnected;
-    public bool IsConnected
+
+    public void StartServer(string ipAddress, int port = 8888)
     {
-        get => _isConnected;
-        private set
+        try
         {
-            if (_isConnected != value)
+            listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            listenerSocket.Bind(new IPEndPoint(IPAddress.Parse(ipAddress), port)); // Escucha en cualquier dirección IP
+            listenerSocket.Listen(); // Máximo de 10 conexiones en cola
+            Debug.WriteLine($"Servidor escuchando en el puerto {port}...");
+
+            // Iniciar la aceptación de conexiones de manera asíncrona
+            AcceptConnectionsAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error al iniciar el servidor: {ex.Message}");
+        }
+    }
+
+    private async void AcceptConnectionsAsync()
+    {
+        while (true)
+        {
+            try
             {
-                _isConnected = value;
-                NotifyPropertyChanged(nameof(IsConnected)); // 🔥 Notificar cambios a la UI
+                // Aceptar una nueva conexión
+                Socket clientSocket = await listenerSocket.AcceptAsync();
+                Debug.WriteLine("Nueva conexión aceptada.");
+                OnNewConnection?.Invoke(clientSocket);
+
+                // Iniciar la recepción de mensajes desde el cliente
+                StartReceiving(clientSocket);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error al aceptar la conexión: {ex.Message}");
+                break;
             }
         }
     }
-    private void NotifyPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-    //public SocketManager(ApplicationContext context)
-    //{
-    //    this.context = context;
-    //}
+
 
     public async Task ConnectAsync(string ipAddress, int port)
     {
@@ -43,7 +68,7 @@ public class SocketManager
             await socket.ConnectAsync(ipAddress, port);
             Debug.WriteLine("Conexión establecida.");
             IsConnected = true;
-            StartReceiving();
+            StartReceiving(socket);
         }
         catch (Exception ex)
         {
@@ -58,8 +83,11 @@ public class SocketManager
         IsConnected = false;
         OnDisconnected?.Invoke();
     }
-    private async void StartReceiving()
-  {
+    private async void StartReceiving(Socket socket)
+    {
+
+        Debug.WriteLine($"AddressFamily {socket.AddressFamily.ToString()}");
+
         byte[] buffer = new byte[1024];
         while (IsConnected)
         {
@@ -101,7 +129,8 @@ public class SocketManager
             Debug.WriteLine($"bytes enviados:{bytesSent}");
 
         }
-        else { 
+        else
+        {
             Debug.WriteLine("socket no esta conectado");
         }
     }
