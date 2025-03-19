@@ -16,29 +16,22 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.ComponentModel;
 
-
+using Microsoft.UI.Xaml.Media.Animation;
 using Windows.Devices.WiFiDirect;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
+using p2p.Pages;
+using System.Collections.Generic;
 
 namespace p2p
 {
-
-    public sealed partial class MainWindow : Window
-    {
-        private DeviceListModel deviceList = new DeviceListModel();
-        private DeviceController deviceController;
-
+    public class WifiDirectController {
         private readonly ApplicationContext context;
 
-        public MainWindow()
-        {
-            this.InitializeComponent();
+        public WifiDirectController() {
             context = App.AppContext;
-            deviceController = new DeviceController(deviceList);
-
-            StartWiFiDirectAsync();
         }
+
 
         private WiFiDirectAdvertisementPublisher publisher;
         private WiFiDirectConnectionListener connectionListener;
@@ -94,15 +87,38 @@ namespace p2p
                 Debug.WriteLine("No hay endpoint disponible.");
             }
         }
-
-        private void StartDiscovery_Click(object sender, RoutedEventArgs e)
-        {
-            context.MdnsController.StartDiscovery();
-        }
-
-        private void AdvertiseService_Click(object sender, RoutedEventArgs e)
-        {
-            context.MdnsController.AdvertiseService();
-        }
     }
+    public sealed partial class MainWindow : Window
+    {
+        private readonly ApplicationContext context;
+        //public static Frame MainFrame { get; private set; }
+        public static Frame InstanceFrame { get; private set; }
+        public static NavigationController NavigationService { get; private set; } = new NavigationController();
+
+        public class MyStringList
+        {
+            public string String1 { get; set; } = "p2p.Pages.SocketMessagesPage";
+            public string String2 { get; set; } = "p2p.Pages.HomePage";
+        }
+        public MainWindow()
+        {
+            this.InitializeComponent();
+            context = App.AppContext;
+            InstanceFrame = this.MainFrame;
+            NavigationService.Initialize(InstanceFrame);
+            NavigationService.Navigate(typeof(HomePage));
+
+            //ResourceDictionary resourceDictionary = new ResourceDictionary();
+            //Application.Current.Resources.Add("PagesMap", NavigationService.PageList);
+            //Application.Current.Resources.MergedDictionaries.Add(resourceDictionary);
+
+            // Agregar el diccionario al ResourceDictionary
+            //Application.Current.Resources.Add("MyStringList", new MyStringList());
+            //Application.Current.Resources["PagesMap"] = NavigationController.PagesMap;
+
+        }
+
+
+    }
+
 }

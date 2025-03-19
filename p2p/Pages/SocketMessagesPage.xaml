@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="p2p.Pages.SocketMessagesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:local="using:p2p.Pages"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    xmlns:controls="using:p2p.Controls"
+    xmlns:nav="using:p2p.Controllers"
+    >
+    <Grid>
+        <StackPanel>
+            <Button 
+                Content="Ir a HomePage" 
+                Command="{x:Bind nav:NavigationController.NavigateTo}"
+                CommandParameter="{x:Bind nav:PageMap.HomePage}" 
+             />
+
+            <controls:SocketMessagesControl />
+        </StackPanel>
+    </Grid>
+</Page>

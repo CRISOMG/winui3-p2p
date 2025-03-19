@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="p2p.Pages.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    xmlns:local="using:p2p.Pages"
+    xmlns:controls="using:p2p.Controls"
+    xmlns:nav="using:p2p.Controllers" 
+    d:DataContext="{d:DesignInstance Type=local:HomePage}">
+    <Grid>
+        <StackPanel>
+            <Button 
+                Content="Ir a Socket Messages" 
+                Command="{x:Bind nav:NavigationController.NavigateTo}" 
+                CommandParameter="{x:Bind nav:PageMap.SocketMessagesPage}" 
+             />
+            <!--<Button Content="Ir a Socket Messages" Command="{Binding NavigateTo}" CommandParameter="{StaticResource PagesMap.SocketMessagesPage}" />-->
+            <Button Content="Anunciar Servicio" Click="AdvertiseService_Click"/>
+            <controls:ServiceListControl />
+
+        </StackPanel>
+    </Grid>
+</Page>

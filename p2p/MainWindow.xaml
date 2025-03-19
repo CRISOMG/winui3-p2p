@@ -7,14 +7,14 @@
     xmlns:local="using:p2p.Controls"
     >
 
-    <StackPanel>
-
-        <Button Content="Iniciar Descubrimiento" Click="StartDiscovery_Click"/>
-        <Button Content="Anunciar Servicio" Click="AdvertiseService_Click"/>
-        
-        <local:ServiceListControl />
-
-        <local:SocketMessagesControl />
-
-    </StackPanel>
+    <Grid>
+        <Frame x:Name="MainFrame">
+            <Frame.Transitions>
+                <TransitionCollection>
+                    <NavigationThemeTransition />
+                </TransitionCollection>
+            </Frame.Transitions>
+        </Frame>
+    </Grid>
+   
 </Window>
