@@ -50,9 +50,6 @@ namespace p2p.Pages
             this.DataContext = this;
         }
 
-        private void AdvertiseService_Click(object sender, RoutedEventArgs e)
-        {
-            context.MdnsController.AdvertiseService();
-        }
+     
     }
 }

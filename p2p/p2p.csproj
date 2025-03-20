@@ -13,7 +13,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Controls\SocketMessagesControl.xaml" />
+    <None Remove="Components\SocketMessagesControl.xaml" />
     <None Remove="Pages\HomePage.xaml" />
   </ItemGroup>
 
@@ -41,10 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.2.250129-preview2" />
+    <PackageReference Include="CommunityToolkit.WinUI.Converters" Version="8.2.250129-preview2" />
     <PackageReference Include="Makaretu.Dns" Version="2.0.1" />
     <PackageReference Include="Makaretu.Dns.Multicast" Version="0.27.0" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250205002" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250310001" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Contexts\ApplicationContext.cs" />
@@ -68,6 +70,10 @@
     <Page Update="Pages\HomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Pages\HomePage\" />
+    <Folder Include="Pages\SocketMessagesPage\" />
   </ItemGroup>
 
   <!--

@@ -6,8 +6,9 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using p2p.Contexts;
+using System.Linq;
 
-namespace p2p.Controls
+namespace p2p.Components
 {
     public sealed partial class SocketMessagesControl : UserControl
     {
@@ -72,12 +73,11 @@ namespace p2p.Controls
                 {
                     // Enviar mensaje al cliente seleccionado
                     //context.SocketManager.SendMessage(message, selectedClientAddress);
-                    context.SocketManager.SendMessage(message); 
+                    context.SocketManager.SendMessage(context.SocketManager.ConnectedClients.First().RemoteEndPoint,message); 
                 }
                 else
                 {
-                    // Enviar mensaje al servidor
-                    context.SocketManager.SendMessage(message);
+                    context.SocketManager.SendMessage(context.SocketManager.ConnectedClients.First().RemoteEndPoint, message);
                 }
 
                 //MessageTextBox.Text = ""; // Limpiar el TextBox

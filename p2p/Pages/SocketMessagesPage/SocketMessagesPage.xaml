@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     xmlns:local="using:p2p.Pages"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    xmlns:controls="using:p2p.Controls"
+    xmlns:controls="using:p2p.Components"
     xmlns:nav="using:p2p.Controllers"
     >
     <Grid>

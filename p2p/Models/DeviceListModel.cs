@@ -9,6 +9,6 @@ namespace p2p.Models
 {
     public class DeviceListModel
     {
-        public ObservableCollection<DeviceModel> Devices { get; set; } = new ObservableCollection<DeviceModel>();
+        public ObservableCollection<DeviceModel> Devices { get; set; } = [];
     }
 }

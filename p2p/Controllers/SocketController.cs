@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
@@ -19,13 +20,17 @@ public partial class SocketManager : ObservableObject
     [ObservableProperty]
     private bool _isConnected;
 
+    private Dictionary<EndPoint, Socket> connectedSockets = new();
+
+    public IReadOnlyCollection<Socket> ConnectedClients => connectedSockets.Values;
+
     public void StartServer(string ipAddress, int port = 8888)
     {
         try
         {
             listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            listenerSocket.Bind(new IPEndPoint(IPAddress.Parse(ipAddress), port)); // Escucha en cualquier dirección IP
-            listenerSocket.Listen(); // Máximo de 10 conexiones en cola
+            listenerSocket.Bind(new IPEndPoint(IPAddress.Parse(ipAddress), port));
+            listenerSocket.Listen(10); // Máximo de 10 conexiones en cola
             Debug.WriteLine($"Servidor escuchando en el puerto {port}...");
 
             // Iniciar la aceptación de conexiones de manera asíncrona
@@ -46,6 +51,7 @@ public partial class SocketManager : ObservableObject
                 // Aceptar una nueva conexión
                 Socket clientSocket = await listenerSocket.AcceptAsync();
                 Debug.WriteLine("Nueva conexión aceptada.");
+                connectedSockets[clientSocket.RemoteEndPoint] = clientSocket;
                 OnNewConnection?.Invoke(clientSocket);
 
                 // Iniciar la recepción de mensajes desde el cliente
@@ -64,10 +70,10 @@ public partial class SocketManager : ObservableObject
     {
         try
         {
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             await socket.ConnectAsync(ipAddress, port);
+            connectedSockets[socket.RemoteEndPoint] = socket;
             Debug.WriteLine("Conexión establecida.");
-            IsConnected = true;
             StartReceiving(socket);
         }
         catch (Exception ex)
@@ -75,26 +81,17 @@ public partial class SocketManager : ObservableObject
             Debug.WriteLine($"Error de conexión: {ex.Message}");
         }
     }
-    private void HandleDisconnection()
-    {
-        Debug.WriteLine("Desconectado del servidor.");
-        socket?.Close();
-        socket = null;
-        IsConnected = false;
-        OnDisconnected?.Invoke();
-    }
+
+ 
     private async void StartReceiving(Socket socket)
     {
-
-        Debug.WriteLine($"AddressFamily {socket.AddressFamily.ToString()}");
-
+        Debug.WriteLine($"Escuchando desde {socket.RemoteEndPoint}");
         byte[] buffer = new byte[1024];
-        while (IsConnected)
+
+        while (socket.Connected)
         {
             try
             {
-                Debug.WriteLine($"IsConnected: {IsConnected}");
-
                 int bytesRead = await socket.ReceiveAsync(buffer, SocketFlags.None);
                 if (bytesRead > 0)
                 {
@@ -103,40 +100,60 @@ public partial class SocketManager : ObservableObject
                 }
                 else
                 {
-                    Debug.WriteLine("Servidor cerró la conexión.");
-                    HandleDisconnection();
+                    Debug.WriteLine($"Cliente {socket.RemoteEndPoint} cerró la conexión.");
+                    HandleDisconnection(socket);
                     break;
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error de recepción: {ex.Message}");
-                HandleDisconnection();
+                Debug.WriteLine($"Error de recepción en {socket.RemoteEndPoint}: {ex.Message}");
+                HandleDisconnection(socket);
                 break;
             }
         }
     }
 
 
-    public void SendMessage(string message)
+    public void SendMessage(EndPoint recipient, string message)
     {
-        if (IsConnected)
+        if (connectedSockets.TryGetValue(recipient, out var socket) && socket.Connected)
         {
             byte[] data = Encoding.UTF8.GetBytes(message + "\n");
-            Debug.WriteLine($"enviando mensaje:{message}");
-            int bytesSent = socket.Send(data);
-
-            Debug.WriteLine($"bytes enviados:{bytesSent}");
-
+            socket.Send(data);
+            Debug.WriteLine($"Mensaje enviado a {recipient}: {message}");
         }
         else
         {
-            Debug.WriteLine("socket no esta conectado");
+            Debug.WriteLine($"El socket para {recipient} no está conectado.");
         }
     }
 
-    public void Disconnect()
+    private void HandleDisconnection(Socket socket)
     {
-        HandleDisconnection();
+        if (socket != null)
+        {
+            Debug.WriteLine($"Cliente {socket.RemoteEndPoint} desconectado.");
+            socket.Close();
+            connectedSockets.Remove(socket.RemoteEndPoint);
+            OnDisconnected?.Invoke();
+        }
+    }
+
+    public void DisconnectClient(EndPoint clientEndpoint)
+    {
+        if (connectedSockets.TryGetValue(clientEndpoint, out var socket))
+        {
+            HandleDisconnection(socket);
+        }
+    }
+
+    public void DisconnectAll()
+    {
+        foreach (var socket in connectedSockets.Values)
+        {
+            socket.Close();
+        }
+        connectedSockets.Clear();
     }
 }

@@ -9,20 +9,25 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     xmlns:local="using:p2p.Pages"
-    xmlns:controls="using:p2p.Controls"
+    xmlns:controls="using:p2p.Components"
     xmlns:nav="using:p2p.Controllers" 
     d:DataContext="{d:DesignInstance Type=local:HomePage}">
     <Grid>
-        <StackPanel>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
             <Button 
                 Content="Ir a Socket Messages" 
                 Command="{x:Bind nav:NavigationController.NavigateTo}" 
                 CommandParameter="{x:Bind nav:PageMap.SocketMessagesPage}" 
              />
-            <!--<Button Content="Ir a Socket Messages" Command="{Binding NavigateTo}" CommandParameter="{StaticResource PagesMap.SocketMessagesPage}" />-->
-            <Button Content="Anunciar Servicio" Click="AdvertiseService_Click"/>
-            <controls:ServiceListControl />
-
         </StackPanel>
+        <StackPanel Grid.Row="1">
+            <controls:ServiceListControl Grid.Row="0" />
+        </StackPanel>
+
+
     </Grid>
 </Page>
