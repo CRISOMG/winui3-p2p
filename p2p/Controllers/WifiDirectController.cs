@@ -25,10 +25,15 @@ namespace p2p.Controllers
 
         private WiFiDirectAdvertisementPublisher publisher;
         private WiFiDirectConnectionListener connectionListener;
+
+        public void AdviseNewDevice(DeviceModel device) {
+            DeviceIpResolved?.Invoke(device);
+        }
         public async Task Invite(DeviceInformation  device) {
             try
             {
                 // Obtener el dispositivo Wi-Fi Direct a partir de la información del dispositivo
+                Debug.WriteLine($"p2p invitaiton to {device.Name} {device.Id}");
                 var wifiDirectDevice = await WiFiDirectDevice.FromIdAsync(device.Id);
 
                 if (wifiDirectDevice != null)
@@ -46,13 +51,16 @@ namespace p2p.Controllers
                             foreach (var endpointPair in endpointPairs)
                             {
                                 Debug.WriteLine($"Endpoint: {endpointPair.RemoteHostName.RawName}");
-                                DeviceIpResolved?.Invoke(new DeviceModel
+                                var port = 8888;
+                                AdviseNewDevice(new DeviceModel
                                 {
                                     Name = device.Name,
                                     Address = endpointPair.RemoteHostName.RawName,
+                                    Port = port,
+                                    p2p_ip = $"{endpointPair.RemoteHostName.RawName}:{port}",
+                                    ip = $"{endpointPair.RemoteHostName.RawName}:{port}",
                                     IsConnected = false,
                                     canConnect = true,
-                                    Port = 8888,
                                 });
                             }
                         }
@@ -74,7 +82,7 @@ namespace p2p.Controllers
             catch (Exception ex)
             {
                 // Manejo de excepciones
-                Debug.WriteLine($"Ocurrió un error: {ex.Message}");
+                Debug.WriteLine($"Ocurrió un error en la invitacion del dispositivo ({device.Name}): {ex.Message}");
             }
         }
         public async Task StartWiFiDirectAsync()
@@ -114,11 +122,11 @@ namespace p2p.Controllers
             };
 
             // Configurar la publicidad del servicio Wi-Fi Direct
-            //publisher.Advertisement.ListenStateDiscoverability = WiFiDirectAdvertisementListenStateDiscoverability.Normal;
-            //publisher.Advertisement.IsAutonomousGroupOwnerEnabled = true;
+            publisher.Advertisement.ListenStateDiscoverability = WiFiDirectAdvertisementListenStateDiscoverability.Normal;
+            publisher.Advertisement.IsAutonomousGroupOwnerEnabled = true;
             //publisher.Advertisement.IsAutonomousGroupOwnerEnabled = false; // No actuar como GO automáticamente
-            //publisher.Advertisement.LegacySettings.IsEnabled = true; // Compatibilidad con dispositivos antiguos
-            //publisher.Advertisement.LegacySettings.Ssid = "MyWiFiDirectDevice"; // Nombre de red opcional
+            publisher.Advertisement.LegacySettings.IsEnabled = true; // Compatibilidad con dispositivos antiguos
+            publisher.Advertisement.LegacySettings.Ssid = "MyWiFiDirectDevice"; // Nombre de red opcional
 
             var watcher = DeviceInformation.CreateWatcher(selector);
             watcher.Added += (s, e) =>
@@ -136,7 +144,6 @@ namespace p2p.Controllers
                     device = device,
                 });
                 Debug.WriteLine($"[DeviceInformation.FindAllAsync] Dispositivo encontrado: {device.Name}");
-                _ = Invite(device);
 
             }
 
@@ -152,6 +159,7 @@ namespace p2p.Controllers
             var endpointPairs = connection.GetConnectionEndpointPairs();
             if (endpointPairs.Count > 0)
             {
+                var port = 8888;
                 var endpoint = endpointPairs[0];
                 string ipAddress = endpoint.RemoteHostName.RawName;
                 var arry_address = ipAddress.Split(":");
@@ -160,8 +168,10 @@ namespace p2p.Controllers
                 {
                     Name = connection.DeviceId,
                     Address = arry_address[0],
-                    //Port = int.Parse(arry_address[1]),
-                    Port = 8888,
+                    Port = port,
+                    canConnect = true,
+                    p2p_ip = arry_address[0],
+                    ip= $"{arry_address[0]}:{port}"
                 });
 
             }

@@ -36,12 +36,25 @@
                             <TextBlock Text="{Binding Name}" FontSize="16"/>
                             <TextBlock FontSize="12" Foreground="Gray" Visibility="{Binding Address, Converter={StaticResource StringVisibilityConverter}}">
                                 <Span>
-                                    <Run Text="{Binding Address}"/>:<Run Text="{Binding Port}"/>
+                                    <Run Text="{Binding ip}"/>
                                 </Span>
                             </TextBlock>
-                            <Button Content="{Binding ViewModel.ConnectionButtonText, ElementName=ServiceList}"
-                                    Command="{Binding ViewModel.ConnectCommand, ElementName=ServiceList}"
-                                    CommandParameter="{Binding}" />
+
+                            <TextBlock Visibility="{Binding lan_ip , Converter={StaticResource StringVisibilityConverter}}">
+                               <Span> lan: <Run Text="{Binding lan_ip}"/> </Span>
+                            </TextBlock>
+                            <TextBlock Visibility="{Binding p2p_ip, Converter=  {StaticResource StringVisibilityConverter}}">
+                                p2p:
+                                <Run Text="{Binding p2p_ip}"/>
+                            </TextBlock>
+                            <StackPanel Orientation="Horizontal"   Margin="0,5,0,0" >
+                                <Button Content="Invitar"
+                                 Command="{Binding ViewModel.InviteCommand, ElementName=ServiceList}"
+                                 CommandParameter="{Binding}" />
+                                <Button Margin="10,0,0,0" Content="{Binding ViewModel.ConnectionButtonText, ElementName=ServiceList}"
+                                        Command="{Binding ViewModel.ConnectCommand, ElementName=ServiceList}"
+                                        CommandParameter="{Binding}" />
+                            </StackPanel>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>

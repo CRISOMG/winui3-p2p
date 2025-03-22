@@ -49,8 +49,10 @@
 		<rescap:Capability Name="runFullTrust" />
 		<Capability Name="internetClientServer"/>
 		<Capability Name="privateNetworkClientServer"/>
+		<Capability Name="internetClient"/>
 		<DeviceCapability Name="proximity"/>
 		<DeviceCapability Name="wifiDirect"/>
 		<DeviceCapability Name="wifiControl"/>
+		<DeviceCapability Name="location"/>
 	</Capabilities>
 </Package>

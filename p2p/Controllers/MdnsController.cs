@@ -88,7 +88,10 @@ namespace p2p.Controllers
                     {
                         Name = deviceName,
                         Address = aRecord.Address.ToString(),
-                        Port = port
+                        Port = port,
+                        ip = $"{aRecord.Address}:{port}",
+                        lan_ip = $"{aRecord.Address}:{port}"
+
                     };
 
                     if (discoveredServicesHashSet.Any(d => d.Address == newService.Address && d.Port == newService.Port))

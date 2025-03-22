@@ -11,6 +11,9 @@ using System.Net;
 using System.Linq;
 using Windows.Devices.Input;
 using Microsoft.UI.Xaml.Data;
+using p2p.Utils;
+using Windows.Devices.Enumeration;
+using Windows.Devices.Portable;
 //using CommunityToolkit.WinUI.;
 
 
@@ -52,7 +55,18 @@ namespace p2p.Components
             var _ = App.AppContext.WifiDirectController.StartWiFiDirectAsync();
         });
 
+        public RelayCommand<DeviceModel> InviteCommand { get; }  =  new((deviceModel) =>
+        {
+            Debug.WriteLine("[InviteCommand] executed");
+            if (deviceModel?.device != null)
+            {
+            var _ = App.AppContext.WifiDirectController.Invite(deviceModel.device);
+            } else
+            {
+                Debug.WriteLine("[InviteCommand] device is null");
 
+            }
+        });
 
         private readonly Microsoft.UI.Dispatching.DispatcherQueue _dispatcherQueue;
         public ServiceDiscoveryViewModel(Microsoft.UI.Dispatching.DispatcherQueue dispatcherQueue)
@@ -97,8 +111,11 @@ namespace p2p.Components
                     var existingDevice = DiscoveredServices.FirstOrDefault(d => d.Name == service.Name);
                     if (existingDevice != null)
                     {
+                        //ObjectMerger.Merge(existingDevice, service);
+                        ObjectMerger.Merge(service, existingDevice);
                         int index = DiscoveredServices.IndexOf(existingDevice);
                         DiscoveredServices[index] = service;
+
                     }
                     else
                     {

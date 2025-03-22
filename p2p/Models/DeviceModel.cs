@@ -12,6 +12,9 @@ namespace p2p.Models
         public int Port { get; set; } // Puerto
         public string? DeviceName { get; set; } // Nombre del dispositivo
         public string? MacAddress { get; set; } // Dirección MAC
+        public string? ip { get; set; }
+        public string? p2p_ip { get; set; }
+        public string? lan_ip { get; set; }
         public bool? IsConnected { get; set; } // Estado de la conexión
         public Socket? socket; // Estado de la conexión
         public DeviceInformation? device; // Estado de la conexión
