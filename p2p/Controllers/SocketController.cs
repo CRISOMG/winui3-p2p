@@ -135,7 +135,10 @@ public partial class SocketManager : ObservableObject
         {
             Debug.WriteLine($"Cliente {socket.RemoteEndPoint} desconectado.");
             socket.Close();
-            connectedSockets.Remove(socket.RemoteEndPoint);
+            //if (socket?.RemoteEndPoint != null)
+            //{
+            //_ = connectedSockets.Remove(socket.RemoteEndPoint);
+            //}
             OnDisconnected?.Invoke();
         }
     }

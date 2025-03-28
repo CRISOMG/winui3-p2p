@@ -49,11 +49,7 @@ namespace p2p.Components
         private string connectionButtonText = "Conectar";
 
         public RelayCommand<DeviceModel> ConnectCommand { get; }
-        public RelayCommand DiscoverCommand = new(() =>
-        {
-            Debug.WriteLine("DiscoverCommand executed");
-            var _ = App.AppContext.WifiDirectController.StartWiFiDirectAsync();
-        });
+        public RelayCommand DiscoverCommand { get; } 
 
         public RelayCommand<DeviceModel> InviteCommand { get; }  =  new((deviceModel) =>
         {
@@ -82,6 +78,14 @@ namespace p2p.Components
             //IPAddress.Any
             context.SocketManager.StartServer(IPAddress.Any.ToString());
 
+
+            DiscoverCommand = new(() =>
+            {
+                Debug.WriteLine("DiscoverCommand executed");
+                var _ = App.AppContext.WifiDirectController.StartWiFiDirectAsync();
+                DiscoveredServices.Clear();
+                //var _ = App.AppContext.WifiDirectController.();
+            });
 
             ConnectCommand = new RelayCommand<DeviceModel>(async (param) =>
             {

@@ -18,9 +18,9 @@ namespace p2p.Controllers
         public event Action<DeviceModel> DeviceDiscovered;
         public event Action<DeviceModel> DeviceIpResolved;
 
-        public WifiDirectController()
-        {
-        }
+        //public WifiDirectController()
+        //{
+        //}
 
 
         private WiFiDirectAdvertisementPublisher publisher;
@@ -95,10 +95,9 @@ namespace p2p.Controllers
             connectionListener.ConnectionRequested += async (sender, args) =>
             {
                 Debug.WriteLine("Solicitud de conexión recibida.");
-
                 // Obtener información del solicitante
                 var connectionRequest = args.GetConnectionRequest();
-                Debug.WriteLine($"Dispositivo solicitante: {connectionRequest.DeviceInformation.Id}");
+                Debug.WriteLine($"Dispositivo solicitante: {connectionRequest.DeviceInformation.Name} ");
                 try
                 {
 
@@ -106,7 +105,7 @@ namespace p2p.Controllers
                     if (connection != null)
                     {
                         Debug.WriteLine("Conexión aceptada.");
-                        await HandleIncomingConnection(connection);
+                        await HandleIncomingConnection(connection, connectionRequest.DeviceInformation);
                     }
                     else
                     {
@@ -123,10 +122,10 @@ namespace p2p.Controllers
 
             // Configurar la publicidad del servicio Wi-Fi Direct
             publisher.Advertisement.ListenStateDiscoverability = WiFiDirectAdvertisementListenStateDiscoverability.Normal;
-            publisher.Advertisement.IsAutonomousGroupOwnerEnabled = true;
-            //publisher.Advertisement.IsAutonomousGroupOwnerEnabled = false; // No actuar como GO automáticamente
+            //publisher.Advertisement.IsAutonomousGroupOwnerEnabled = true;
+            publisher.Advertisement.IsAutonomousGroupOwnerEnabled = false; // No actuar como GO automáticamente
             publisher.Advertisement.LegacySettings.IsEnabled = true; // Compatibilidad con dispositivos antiguos
-            publisher.Advertisement.LegacySettings.Ssid = "MyWiFiDirectDevice"; // Nombre de red opcional
+            //publisher.Advertisement.LegacySettings.Ssid = "MyWiFiDirectDevice"; // Nombre de red opcional
 
             var watcher = DeviceInformation.CreateWatcher(selector);
             watcher.Added += (s, e) =>
@@ -152,7 +151,7 @@ namespace p2p.Controllers
             Debug.WriteLine("Wi-Fi Direct iniciado y esperando conexiones.");
         }
 
-        private async Task HandleIncomingConnection(WiFiDirectDevice connection)
+        private async Task HandleIncomingConnection(WiFiDirectDevice connection, DeviceInformation deviceInfo)
         {
             //Debug.WriteLine("Conexión establecida, configurando sockets...");
 
@@ -166,7 +165,7 @@ namespace p2p.Controllers
                  Debug.WriteLine($"IP asignada por Wi-Fi Direct: {ipAddress}");
                 DeviceDiscovered?.Invoke(new DeviceModel
                 {
-                    Name = connection.DeviceId,
+                    Name = deviceInfo.Name,
                     Address = arry_address[0],
                     Port = port,
                     canConnect = true,

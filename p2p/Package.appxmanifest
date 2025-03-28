@@ -50,6 +50,7 @@
 		<Capability Name="internetClientServer"/>
 		<Capability Name="privateNetworkClientServer"/>
 		<Capability Name="internetClient"/>
+		<Capability Name="allJoyn"/>
 		<DeviceCapability Name="proximity"/>
 		<DeviceCapability Name="wifiDirect"/>
 		<DeviceCapability Name="wifiControl"/>

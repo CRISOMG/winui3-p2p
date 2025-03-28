@@ -69,15 +69,25 @@ namespace p2p.Components
             string message = MessageTextBox.Text;
             if (!string.IsNullOrWhiteSpace(message))
             {
-                if (isSendingToClient && ViewModel?.SelectedClientAddress != null)
+                if (context.SocketManager.ConnectedClients.Count == 0)
+                {
+                    Debug.WriteLine($"SendToServerOrClient SocketManager.ConnectedClients {context.SocketManager.ConnectedClients.Count}");
+                    return;
+                }
+                var socket = context.SocketManager.ConnectedClients.First();
+                if (!socket.Connected)
+                {
+                    return;
+                }
+                if (socket.Connected && isSendingToClient && ViewModel?.SelectedClientAddress != null)
                 {
                     // Enviar mensaje al cliente seleccionado
                     //context.SocketManager.SendMessage(message, selectedClientAddress);
-                    context.SocketManager.SendMessage(context.SocketManager.ConnectedClients.First().RemoteEndPoint,message); 
+                    context.SocketManager.SendMessage(socket?.RemoteEndPoint ,message); 
                 }
                 else
                 {
-                    context.SocketManager.SendMessage(context.SocketManager.ConnectedClients.First().RemoteEndPoint, message);
+                    context.SocketManager.SendMessage(socket?.RemoteEndPoint, message);
                 }
 
                 //MessageTextBox.Text = ""; // Limpiar el TextBox

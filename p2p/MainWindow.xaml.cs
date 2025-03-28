@@ -23,6 +23,10 @@ using Windows.Storage.Streams;
 using p2p.Pages;
 using System.Collections.Generic;
 
+using System.Diagnostics;
+using System.IO;
+
+
 namespace p2p
 {
     public sealed partial class MainWindow : Window
@@ -37,11 +41,41 @@ namespace p2p
             public string String1 { get; set; } = "p2p.Pages.SocketMessagesPage";
             public string String2 { get; set; } = "p2p.Pages.HomePage";
         }
-        public MainWindow()
+
+
+public static void AddFirewallRule()
+    {
+            string exePath = Path.Combine(AppContext.BaseDirectory, "p2p.exe"); // Reemplaza "MyApp.exe" con el nombre real de tu ejecutable
+            string script = $@"
+$exePath = ""{exePath}""
+New-NetFirewallRule -DisplayName ""Wi-Fi P2P App Inbound"" -Direction Inbound -Action Allow -Program $exePath -Profile Any
+New-NetFirewallRule -DisplayName ""Wi-Fi P2P App Outbound"" -Direction Outbound -Action Allow -Program $exePath -Profile Any
+exit
+    ";
+
+            ProcessStartInfo psi = new ProcessStartInfo
+            {
+                FileName = "powershell",
+                Arguments = $"-ExecutionPolicy Bypass -NoProfile -Command \"{script}\"",
+                Verb = "runas",
+                UseShellExecute = false, // Permite capturar salida
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true // Asegura que no se abra una ventana de PowerShell
+            };
+
+            using (Process process = new Process { StartInfo = psi })
+            {
+                process.Start();
+                process.WaitForExit(); // Espera a que termine antes de continuar
+            }
+        }
+    public MainWindow()
         {
             this.InitializeComponent();
             context = App.AppContext;
             InstanceFrame = this.MainFrame;
+            //AddFirewallRule();
             NavigationService.Initialize(InstanceFrame);
             NavigationService.Navigate(typeof(HomePage));
 

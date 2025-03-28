@@ -13,8 +13,80 @@ using System.Collections.ObjectModel;
 using Microsoft.UI.Dispatching;
 using System.Net;
 using p2p.Models;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+
+
+
 namespace p2p.Controllers
 {
+
+    public class WifiDirectHelper
+    {
+       
+        public static List<NetworkInterface> getInterfacesV1()
+        {
+            List<NetworkInterface> interList  = [];
+            // Obtener interfaces de red activas
+            var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(nic =>
+                    nic.OperationalStatus == OperationalStatus.Up && // Solo interfaces activas
+                    nic.NetworkInterfaceType != NetworkInterfaceType.Loopback) // Evitar loopback
+                .ToList();
+
+            foreach (var netInterface in interfaces)
+            {
+                var ipProps = netInterface.GetIPProperties();
+
+                foreach (var addr in ipProps.UnicastAddresses)
+                {
+                    if (addr.Address.AddressFamily == AddressFamily.InterNetwork) // IPv4
+                    {
+                        Console.WriteLine($"Interface: {netInterface.Name} - IP: {addr.Address}");
+
+                        if (addr.Address.ToString().StartsWith("192.168.49."))
+                        {
+                            Console.WriteLine("📡 Se detectó una red Wi-Fi Direct (P2P).");
+                        }
+                        else
+                        {
+                            Console.WriteLine("🌐 Se detectó una red LAN.");
+                        }
+
+                        // Agregar la interfaz a mDNS
+                        interList.Add(netInterface);
+                    }
+                }
+            }
+
+            return interList;
+        }
+        public static List<NetworkInterface> GetP2pIpAddress()
+        {
+            List<NetworkInterface> interList = [];
+
+            foreach (var netInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (netInterface.OperationalStatus == OperationalStatus.Up)
+                {
+                    var ipProps = netInterface.GetIPProperties();
+                    foreach (var addr in ipProps.UnicastAddresses)
+                    {
+                        if (addr.Address.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            string ip = addr.Address.ToString();
+                            if (ip.StartsWith("192.168.")) // Puede ser 49.x, 137.x, etc.
+                            {
+                                interList.Add(netInterface);
+
+                            }
+                        }
+                    }
+                }
+            }
+            return interList;
+        }
+    }
 
     public class MdnsController
     {
@@ -37,16 +109,19 @@ namespace p2p.Controllers
 
 
             mdns = new MulticastService();
+            //mdns.NetworkInterfaceDiscovered
+            //mdns.NetworkInterfaceDiscoveryInterval
             mdns.Start();
             mdns.AnswerReceived += (s, message) =>
             {
-                Debug.WriteLine("[AnswerReceived]");
                 var records = new
                 {
                     srvRecord = message.Message.Answers.OfType<SRVRecord>().FirstOrDefault(),
                     aRecord = message.Message?.Answers.OfType<ARecord>().FirstOrDefault(),
                     txtRecord = message.Message?.Answers.OfType<TXTRecord>().FirstOrDefault(),
                 };
+                Debug.WriteLine("[AnswerReceived]");
+
             };
 
             discovery = new ServiceDiscovery(mdns);
@@ -78,7 +153,7 @@ namespace p2p.Controllers
                         return;
                     }
 
-                    int port = (int)(srvRecord.Port);
+                    int port = (int)(srvRecord.Port);   
                     if (port <= 0)
                     {
                         Debug.WriteLine($"❌ Puerto inválido: {port}");
@@ -114,6 +189,20 @@ namespace p2p.Controllers
 
             };
 
+            mdns.NetworkInterfaceDiscovered += (s, e) =>
+            {
+                Debug.WriteLine($"NetworkInterfaceDiscovered");
+
+                var i = e.NetworkInterfaces;
+                i.ToList().ForEach((i) =>
+                {
+
+                    Debug.WriteLine($"{i.Name} {i.Description}");
+
+                });
+
+            };
+
             //discovery.QueryAllServices();
             discovery.QueryServiceInstances(serviceType);
             Debug.WriteLine("📡 Iniciando descubrimiento mDNS...");
@@ -126,9 +215,12 @@ namespace p2p.Controllers
 
         public void AdvertiseService()
         {
-            var service = new ServiceProfile(serviceName, serviceType, port);
-            //service.AddProperty("info", "Mi servicio en UWP");
+            var l1 = WifiDirectHelper.GetP2pIpAddress();
+            var l2 = WifiDirectHelper.getInterfacesV1();
 
+            string deviceName = Environment.MachineName;
+            var service = new ServiceProfile(serviceName, serviceType, port);
+            service.AddProperty("deviceName", deviceName);
             discovery.Advertise(service);
             Debug.WriteLine("📢 Servicio anunciado con éxito.");
         }
