@@ -26,6 +26,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
+using Windows.ApplicationModel;
+
 
 namespace p2p
 {
@@ -78,6 +80,9 @@ exit
             //AddFirewallRule();
             NavigationService.Initialize(InstanceFrame);
             NavigationService.Navigate(typeof(HomePage));
+
+            bool isPackaged = Package.Current != null;
+            Debug.WriteLine($"La aplicación está empaquetada en MSIX: {isPackaged}");
 
             //ResourceDictionary resourceDictionary = new ResourceDictionary();
             //Application.Current.Resources.Add("PagesMap", NavigationService.PageList);
