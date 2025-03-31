@@ -17,6 +17,11 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using p2p.Contexts;
 
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using p2p.Components;
+using Microsoft.UI.Dispatching;
+
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -36,8 +41,16 @@ namespace p2p
         public App()
         {
             this.InitializeComponent();
+            ConfigureServices();
         }
+        private void ConfigureServices()
+        {
+            var services = new ServiceCollection();
+            services.AddSingleton(DispatcherQueue.GetForCurrentThread());
+            services.AddSingleton<ServiceListViewModel>();
 
+            Ioc.Default.ConfigureServices(services.BuildServiceProvider());
+        }
         /// <summary>
         /// Invoked when the application is launched.
         /// </summary>

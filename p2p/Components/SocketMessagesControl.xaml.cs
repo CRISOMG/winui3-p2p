@@ -30,8 +30,8 @@ namespace p2p.Components
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            context.SocketManager.MessageReceived -= OnMessageReceived;
-            Debug.WriteLine("SocketMessagesControl descargado y eventos limpiados.");
+            //context.SocketManager.MessageReceived -= OnMessageReceived;
+            Debug.WriteLine("SocketMessagesControl OnUnloaded");
         }
 
         private async void OnMessageReceived(string message)

@@ -16,6 +16,9 @@ using Windows.Devices.Enumeration;
 using Windows.Devices.Portable;
 using System.Collections.Generic;
 using System;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Windows.Services.Maps;
+using Microsoft.UI.Dispatching;
 //using CommunityToolkit.WinUI.;
 
 
@@ -30,12 +33,17 @@ namespace p2p.Components
         
 
         public RelayCommand<DeviceModel> OpenDialogCommand { get; } 
-        public ServiceDiscoveryViewModel ViewModel { get; private set; }
+        public ServiceListViewModel ViewModel { get; private set; }
         public ServiceListControl()
         {
             this.InitializeComponent();
-            ViewModel = new ServiceDiscoveryViewModel(DispatcherQueue); 
+            //ViewModel = new ServiceListViewModel(DispatcherQueue);
+            ViewModel = Ioc.Default.GetService<ServiceListViewModel>();
+
             this.DataContext = ViewModel;
+
+            Debug.WriteLine($"[this.DataContext] {this.DataContext}");
+
             context = App.AppContext;
 
 
@@ -52,49 +60,11 @@ namespace p2p.Components
         {
             context.MdnsController.AdvertiseService();
         }
-        // Método que maneja la selección de un dispositivo
-        //private void OnDeviceSelected(DeviceModel device)
-        //{
-        //    ViewModel.SelectIpCommand.Execute(device);
-        //}
-
-    
-        private async void ShowDeviceDialog(DeviceModel deviceInfo)
-        {
-            // Limpiar elementos previos
-            //IpListPanel.Children.Clear();
-
-            List<string> ipList = [deviceInfo.lan_ip, deviceInfo.p2p_ip];
-            // Agregar dinámicamente botones para cada IP en la lista
-            foreach (var ip in ipList)
-            {
-                if (!string.IsNullOrEmpty(ip))
-                {
-                    //var button = new Button
-                    //{
-                    //    Content = ip,
-                    //    FontSize = 20,
-                    //    HorizontalAlignment = HorizontalAlignment.Stretch,
-                    //    Margin = new Thickness(5)
-                    //};
-
-                    //button.Click += (_, _) =>
-                    //{
-                    //    //deviceInfo.Ip = ip;
-                    //    //viewModel.PublishEvent(deviceInfo);
-                    //    DeviceIpListDialog.Hide(); // Cierra el diálogo después de seleccionar la IP
-                    //};
-
-                    //IpListPanel.Children.Add(button);
-                }
-            }
-
-            // Mostrar el diálogo
-            await DeviceIpListDialog.ShowAsync();
-        }
 
     }
-    public partial class ServiceDiscoveryViewModel : ObservableObject
+
+    // ViewModel
+    public partial class ServiceListViewModel : ObservableObject
     {
         private readonly ApplicationContext context;
         private DeviceModel _selectedDevice;
@@ -129,12 +99,15 @@ namespace p2p.Components
             }
         });
 
-        private readonly Microsoft.UI.Dispatching.DispatcherQueue _dispatcherQueue;
+        private readonly DispatcherQueue _dispatcherQueue;
 
-        public ServiceDiscoveryViewModel(Microsoft.UI.Dispatching.DispatcherQueue dispatcherQueue)
+        public ServiceListViewModel(DispatcherQueue dispatcherQueue)
         {
 
             _dispatcherQueue = dispatcherQueue;
+            Debug.WriteLine($"dispatcherQueue {_dispatcherQueue}");
+
+            //_dispatcherQueue = dispatcherQueue;
             context = App.AppContext;
             context.MdnsController.DeviceDiscovered += OnServiceReceived;
             context.WifiDirectController.DeviceDiscovered += OnServiceReceived;
